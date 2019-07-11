@@ -6,12 +6,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
 var (
 	con = flag.Int("con", 5, "number of concurrent clients repeating request")
-	hld = flag.Duration("hold-for", time.Second, "hold for time")
 	out = flag.String("out", "", "output file name")
 	url = flag.String("url", "", "")
 )
@@ -35,6 +36,8 @@ func main() {
 		defer f.Close()
 		w = f
 	}
+	sch := make(chan os.Signal, 1)
+	signal.Notify(sch, syscall.SIGINT, syscall.SIGTERM)
 	for i := 0; i < *con; i++ {
 		go func() {
 			for {
@@ -42,12 +45,11 @@ func main() {
 			}
 		}()
 	}
-	done := time.After(*hld)
 	for {
 		select {
 		case r := <-rch:
 			fmt.Fprintln(w, r.sc, r.dur)
-		case <-done:
+		case <-sch:
 			return
 		}
 	}
