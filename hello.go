@@ -36,8 +36,6 @@ func main() {
 		defer f.Close()
 		w = f
 	}
-	sch := make(chan os.Signal, 1)
-	signal.Notify(sch, syscall.SIGINT, syscall.SIGTERM)
 	for i := 0; i < *con; i++ {
 		go func() {
 			for {
@@ -45,6 +43,8 @@ func main() {
 			}
 		}()
 	}
+	sch := make(chan os.Signal, 1)
+	signal.Notify(sch, syscall.SIGINT, syscall.SIGTERM)
 	for {
 		select {
 		case r := <-rch:
